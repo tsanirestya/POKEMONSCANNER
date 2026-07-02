@@ -63,6 +63,11 @@ jobs:
         npm ci
         npm run build
 
+    - name: 📁 Ensure runtime directories deploy
+      run: |
+        mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/public
+        find storage bootstrap/cache -type d -exec touch {}/.keep \;
+
     - name: 📂 Sync files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
