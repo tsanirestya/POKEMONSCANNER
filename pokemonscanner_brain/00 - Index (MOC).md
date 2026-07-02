@@ -4,7 +4,7 @@ type: brd
 status: final
 tags: [pokemonscanner, moc]
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-03
 ---
 
 # 00 - Index (MOC) — PokemonScanner
@@ -34,6 +34,7 @@ Map of Content (peta utama). Semua note BRD terhubung dari sini. Baca berurutan 
 | 13 | [[13 - Decision Log]] | final | 17 keputusan terkunci + tanggal |
 | 14 | [[14 - Open Questions]] | final | Kosong — semua pertanyaan terjawab |
 | 15 | [[15 - Roadmap Implementasi]] | in-progress | Fase kerja kode (checklist), 1 fase = 1 sesi chat |
+| 16 | [[16 - Runbook Deployment & Troubleshooting Hosting]] | final | Arsitektur deploy FTP 2-step, diagnosis error production, teknik tanpa SSH |
 
 ## Alur Baca yang Disarankan
 
