@@ -63,29 +63,21 @@ jobs:
         npm ci
         npm run build
 
-    - name: 🔎 List FTP root layout (temporary debug)
-      run: |
-        curl -s --list-only "ftp://${{ secrets.FTP_SERVER }}/" --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" | head -50 || true
-        echo "=== detail root ==="
-        curl -s "ftp://${{ secrets.FTP_SERVER }}/" --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" | head -50 || true
-        echo "=== public_html ==="
-        curl -s "ftp://${{ secrets.FTP_SERVER }}/public_html/" --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" | head -30 || true
-        echo "=== domains ==="
-        curl -s "ftp://${{ secrets.FTP_SERVER }}/domains/" --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" | head -30 || true
-
     - name: 📁 Ensure runtime directories deploy
       run: |
         mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/public
         find storage bootstrap/cache -type d -exec touch {}/.keep \;
 
-    - name: 📂 Sync files via FTP
+    # FTP root = cPanel home dir. The Laravel app lives there (outside any docroot),
+    # and the subdomain docroot scanner.transentertainment.id/ gets only public/*.
+    # public/index.php's relative paths (../vendor, ../bootstrap) resolve to the
+    # app at the home dir, so no path patching is needed.
+    - name: 📂 Sync app files via FTP (home dir)
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        # Note: If your FTP account roots directly to scanner.transentertainment.id, server-dir should be './'
-        # Otherwise, adjust it to point to your subdomain root directory (e.g., 'public_html/scanner.transentertainment.id/')
         server-dir: ./
         exclude: |
           **/.git*
@@ -93,3 +85,13 @@ jobs:
           **/node_modules/**
           tests/**
           phpunit.xml
+
+    - name: 📂 Sync public/ into subdomain docroot
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./public/
+        server-dir: ./scanner.transentertainment.id/
+        state-name: .ftp-deploy-sync-state-docroot.json
