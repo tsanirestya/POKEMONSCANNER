@@ -63,6 +63,16 @@ jobs:
         npm ci
         npm run build
 
+    - name: 🔎 List FTP root layout (temporary debug)
+      run: |
+        curl -s --list-only "ftp://${{ secrets.FTP_SERVER }}/" --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" | head -50 || true
+        echo "=== detail root ==="
+        curl -s "ftp://${{ secrets.FTP_SERVER }}/" --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" | head -50 || true
+        echo "=== public_html ==="
+        curl -s "ftp://${{ secrets.FTP_SERVER }}/public_html/" --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" | head -30 || true
+        echo "=== domains ==="
+        curl -s "ftp://${{ secrets.FTP_SERVER }}/domains/" --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" | head -30 || true
+
     - name: 📁 Ensure runtime directories deploy
       run: |
         mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/public
