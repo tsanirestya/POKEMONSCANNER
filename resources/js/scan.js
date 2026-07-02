@@ -1,4 +1,5 @@
 import { BrowserMultiFormatReader } from '@zxing/browser';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 import {
     applyOptimisticLocalStock,
     flushQueue,
@@ -89,8 +90,14 @@ document.addEventListener('alpine:init', () => {
             }, AUTO_SYNC_INTERVAL_MS);
 
             try {
+                // Resolusi tinggi penting: default browser (±640x480) tidak cukup
+                // pixel untuk decode barcode kecil dari jarak normal.
                 this.stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: 'environment' } },
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                    },
                 });
             } catch (e) {
                 this.lastMessage = 'Kamera tidak bisa diakses: ' + e.message;
@@ -105,6 +112,14 @@ document.addEventListener('alpine:init', () => {
             const capabilities = this.track.getCapabilities ? this.track.getCapabilities() : {};
             this.torchSupported = !!capabilities.torch;
 
+            if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
+                try {
+                    await this.track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+                } catch (e) {
+                    // kamera tidak mendukung set fokus via constraint — pakai default
+                }
+            }
+
             if ('BarcodeDetector' in window) {
                 this.detector = new window.BarcodeDetector({
                     formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'],
@@ -113,7 +128,18 @@ document.addEventListener('alpine:init', () => {
                 this.loopBarcodeDetector();
             } else {
                 this.usingFallback = true;
-                this.zxingReader = new BrowserMultiFormatReader();
+                const hints = new Map();
+                hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+                    BarcodeFormat.EAN_13,
+                    BarcodeFormat.EAN_8,
+                    BarcodeFormat.UPC_A,
+                    BarcodeFormat.UPC_E,
+                    BarcodeFormat.CODE_128,
+                    BarcodeFormat.CODE_39,
+                    BarcodeFormat.QR_CODE,
+                ]);
+                hints.set(DecodeHintType.TRY_HARDER, true);
+                this.zxingReader = new BrowserMultiFormatReader(hints);
                 this.decoderReady = true;
                 this.zxingControls = await this.zxingReader.decodeFromVideoElement(
                     this.$refs.video,
