@@ -21,6 +21,10 @@ body {
     min-height: 100vh;
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 /* Pokeball button used as brand mark / decorative divider */
 .pokeball-dot {
     display: inline-block;
@@ -53,6 +57,26 @@ body {
 
     .navbar-spacer {
         @apply ms-auto;
+    }
+
+    .navbar-more {
+        @apply flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white;
+    }
+
+    .navbar-more.active {
+        @apply bg-poke-red text-white;
+    }
+
+    .navbar-dropdown {
+        @apply absolute right-0 top-full z-30 mt-2 flex min-w-40 flex-col overflow-hidden rounded-xl border border-black/10 bg-white py-1 shadow-lg;
+    }
+
+    .navbar-dropdown a {
+        @apply rounded-none px-4 py-2 text-sm font-medium text-black/70 hover:bg-poke-red/10 hover:text-poke-black;
+    }
+
+    .navbar-dropdown a.active {
+        @apply bg-poke-red/10 text-poke-red;
     }
 
     .page {
@@ -231,6 +255,26 @@ body {
 
     .bottom-nav .nav-scan.active .nav-scan-icon {
         @apply border-poke-red ring-2 ring-poke-red/30;
+    }
+
+    .bottom-nav-more-btn {
+        @apply flex flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[0.65rem] font-semibold text-black/45 transition active:scale-95;
+    }
+
+    .bottom-nav-more-btn.active {
+        @apply text-poke-red;
+    }
+
+    .bottom-nav-more-btn svg {
+        @apply size-5;
+    }
+
+    .bottom-nav-more {
+        @apply absolute bottom-full right-2 mb-2 flex min-w-44 flex-col overflow-hidden rounded-xl border border-black/10 bg-white py-1 shadow-lg;
+    }
+
+    .bottom-nav-more a {
+        @apply flex-row justify-start gap-2 rounded-none px-4 py-2.5 text-sm;
     }
 
     /* --- Responsive tables: stack into cards below sm breakpoint --- */
