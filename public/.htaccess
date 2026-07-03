@@ -1,6 +1,11 @@
 # Host defaults to PHP 7.4; Laravel 12 requires >= 8.2 (matches CI build version)
 AddHandler application/x-httpd-ea-php82 .php
 
+# Block dotfiles (e.g. the FTP deploy state file synced into the docroot)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

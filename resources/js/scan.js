@@ -11,9 +11,36 @@ import {
     submitToServer,
 } from './offline-sync';
 
-function beep({ frequency, duration, type = 'sine' }) {
+// Satu AudioContext dipakai bersama: browser membatasi jumlah context aktif,
+// dan context yang dibuat tanpa user gesture tertahan 'suspended' (autoplay policy).
+let sharedAudioCtx = null;
+
+function audioCtx() {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    const ctx = new AudioCtx();
+
+    if (!sharedAudioCtx) {
+        sharedAudioCtx = new AudioCtx();
+    }
+
+    if (sharedAudioCtx.state === 'suspended') {
+        sharedAudioCtx.resume();
+    }
+
+    return sharedAudioCtx;
+}
+
+// Unlock audio pada gesture pertama di halaman (tap di mana pun).
+['touchstart', 'click'].forEach((evt) => {
+    document.addEventListener(evt, () => audioCtx(), { once: true, passive: true });
+});
+
+function beep({ frequency, duration, type = 'sine' }) {
+    const ctx = audioCtx();
+
+    if (ctx.state !== 'running') {
+        return; // belum di-unlock gesture — lewati, jangan antri bunyi basi
+    }
+
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -27,7 +54,10 @@ function beep({ frequency, duration, type = 'sine' }) {
 
     oscillator.start();
     oscillator.stop(ctx.currentTime + duration);
-    oscillator.onended = () => ctx.close();
+    oscillator.onended = () => {
+        oscillator.disconnect();
+        gain.disconnect();
+    };
 }
 
 function playSuccessSound() {
@@ -229,8 +259,7 @@ document.addEventListener('alpine:init', () => {
             st.missStreak = 0;
 
             if (this.modeTeliti) {
-                playDuplicateSound();
-                this.ready = false;
+                this.duplicateFeedback(st, now);
 
                 return;
             }
@@ -239,9 +268,19 @@ document.addEventListener('alpine:init', () => {
                 this.countScan(visibleBarcode);
                 st.lastTs = now;
             } else {
-                playDuplicateSound();
-                this.ready = false;
+                this.duplicateFeedback(st, now);
             }
+        },
+
+        // Barcode yang sama terbaca terus tiap frame — bunyikan nada duplikat
+        // maksimal 1x/detik, bukan puluhan kali per detik.
+        duplicateFeedback(st, now) {
+            if (!st.lastDupBeepTs || now - st.lastDupBeepTs >= 1000) {
+                playDuplicateSound();
+                st.lastDupBeepTs = now;
+            }
+
+            this.ready = false;
         },
 
         async countScan(barcode) {
