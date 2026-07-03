@@ -366,22 +366,83 @@ body {
     100% { border-color: var(--color-poke-red); box-shadow: 0 0 0 999px rgb(0 0 0 / 0.35); }
 }
 
-.scan-count {
-    font-size: 3.25rem;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--color-poke-black);
-    transition: transform 150ms ease-out;
+/* Frame tinggi: kamera + angka + nama item muat satu layar HP
+   (dvh dikurangi navbar atas ± tab tipe ± bottom-nav) */
+.scan-frame-tall video {
+    aspect-ratio: auto;
+    width: 100%;
+    height: clamp(340px, calc(100dvh - 15.5rem), 640px);
 }
 
-.scan-count.bump {
+.scan-count-badge {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    min-width: 4.25rem;
+    padding: 0.4rem 0.85rem 0.5rem;
+    border-radius: 1rem;
+    background: var(--color-poke-red);
+    color: #fff;
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 4px 14px -4px rgb(0 0 0 / 0.5);
+}
+
+.scan-count-badge small {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    opacity: 0.9;
+}
+
+.scan-count-badge.keluar {
+    background: var(--color-poke-black);
+}
+
+.scan-count-badge.bump {
     animation: scan-count-bump 320ms ease-out;
 }
 
 @keyframes scan-count-bump {
     0% { transform: scale(1); }
-    35% { transform: scale(1.18); color: #16a34a; }
+    35% { transform: scale(1.18); }
     100% { transform: scale(1); }
+}
+
+.scan-info {
+    position: absolute;
+    inset-inline: 0.6rem;
+    bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0.9rem;
+    background: rgb(255 255 255 / 0.92);
+    backdrop-filter: blur(4px);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-poke-black);
+    box-shadow: 0 4px 14px -6px rgb(0 0 0 / 0.45);
+}
+
+.scan-ready-dot {
+    flex: none;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 9999px;
+    background: #d4d4d4;
+    transition: background 150ms;
+}
+
+.scan-ready-dot.on {
+    background: #22c55e;
+    box-shadow: 0 0 0 4px rgb(34 197 94 / 0.25);
 }
 
 .torch-btn {

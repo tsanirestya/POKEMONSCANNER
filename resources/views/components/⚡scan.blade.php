@@ -66,34 +66,34 @@ new class extends Component
     })"
     x-init="init()"
 >
-    <h1 class="page-title"><span class="pokeball-dot"></span> Layar Scan</h1>
+    <div class="tab-group mb-2">
+        <label class="tab-btn" :class="tipe === 'in' && 'active'">
+            <input type="radio" value="in" x-model="tipe" class="hidden">
+            Scan Masuk (+1)
+        </label>
+        <label class="tab-btn" :class="tipe === 'out' && 'active'">
+            <input type="radio" value="out" x-model="tipe" class="hidden">
+            Scan Keluar (−1)
+        </label>
+    </div>
 
-    <div class="card">
-        <div class="tab-group mb-3">
-            <label class="tab-btn" :class="tipe === 'in' && 'active'">
-                <input type="radio" value="in" x-model="tipe" class="hidden">
-                Scan Masuk (+1)
-            </label>
-            <label class="tab-btn" :class="tipe === 'out' && 'active'">
-                <input type="radio" value="out" x-model="tipe" class="hidden">
-                Scan Keluar (−1)
-            </label>
+    <div class="scan-frame scan-frame-tall">
+        <video x-ref="video" autoplay playsinline muted></video>
+        <div class="reticle" x-ref="reticle"></div>
+
+        <div class="scan-count-badge" :class="tipe === 'out' && 'keluar'" x-ref="counter">
+            <span x-text="sessionCount"></span>
+            <small x-text="tipe === 'in' ? 'MASUK' : 'KELUAR'"></small>
         </div>
 
-        <div class="scan-frame">
-            <video x-ref="video" autoplay playsinline muted></video>
-            <div class="reticle" x-ref="reticle"></div>
-            <button type="button" class="torch-btn" x-show="torchSupported" @click="toggleTorch()">
-                <span x-text="torchOn ? '🔦 Senter: On' : '🔦 Senter: Off'"></span>
-            </button>
+        <button type="button" class="torch-btn" x-show="torchSupported" @click="toggleTorch()">
+            <span x-text="torchOn ? '🔦 On' : '🔦 Off'"></span>
+        </button>
+
+        <div class="scan-info">
+            <span class="scan-ready-dot" :class="(ready && decoderReady) && 'on'"></span>
+            <span class="min-w-0 flex-1 truncate" x-text="lastMessage || (decoderReady ? 'Arahkan kamera ke barcode' : 'Menyiapkan kamera & decoder…')"></span>
         </div>
-
-        <p class="scan-count text-center mt-3" x-ref="counter" x-text="sessionCount"></p>
-
-        <p class="text-center text-sm font-semibold text-emerald-600" x-show="ready">Siap scan berikutnya</p>
-        <p class="text-center text-sm text-black/60" x-show="lastMessage" x-text="lastMessage"></p>
-        <p class="text-center text-sm text-black/40" x-show="!decoderReady">Menyiapkan kamera &amp; decoder…</p>
-        <p class="text-center text-xs text-black/40" x-show="usingFallback">Pakai decoder fallback (ZXing).</p>
     </div>
 
     <div class="card mt-4">
@@ -129,6 +129,7 @@ new class extends Component
             <span x-show="pendingCount === 0 && lastSyncAt" x-text="'Sync terakhir: ' + (lastSyncAt ? lastSyncAt.toLocaleTimeString() : '-')"></span>
         </p>
         <button type="button" class="btn-secondary mt-2" @click="manualSync()" :disabled="syncing">Sync sekarang</button>
+        <p class="mt-2 text-xs text-black/40" x-show="usingFallback" x-cloak>Pakai decoder fallback (ZXing).</p>
     </div>
 </div>
 
