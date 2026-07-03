@@ -6,6 +6,7 @@ import {
     getCachedProduct,
     getLastSyncAt,
     getQueueCount,
+    isAuthError,
     refreshMasterCache,
     queueScan,
     submitToServer,
@@ -92,6 +93,7 @@ document.addEventListener('alpine:init', () => {
         pendingCount: 0,
         lastSyncAt: null,
         syncing: false,
+        authExpired: false,
 
         stream: null,
         track: null,
@@ -198,9 +200,10 @@ document.addEventListener('alpine:init', () => {
             this.syncing = true;
 
             try {
-                await flushQueue(async () => {
+                const result = await flushQueue(async () => {
                     this.pendingCount = await getQueueCount();
                 });
+                this.authExpired = result.authError;
                 this.lastSyncAt = getLastSyncAt();
             } finally {
                 this.syncing = false;
@@ -298,11 +301,15 @@ document.addEventListener('alpine:init', () => {
             if (navigator.onLine) {
                 try {
                     const data = await submitToServer({ barcode, tipe, scan_uuid: scanUuid });
+                    this.authExpired = false;
                     this.applyServerResult(data);
 
                     return;
                 } catch (e) {
-                    // jaringan gagal di tengah jalan — lanjut ke jalur antrian offline
+                    // jaringan gagal / sesi habis — scan diamankan ke antrian offline
+                    if (isAuthError(e)) {
+                        this.authExpired = true;
+                    }
                 }
             }
 

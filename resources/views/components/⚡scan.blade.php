@@ -115,6 +115,10 @@ new class extends Component
     </div>
 
     <div class="card mt-4">
+        <p class="status-banner offline" x-show="authExpired" x-cloak>
+            Sesi login habis — scan tetap aman di antrian.
+            <a href="{{ route('login') }}" class="font-bold underline">Login ulang</a> untuk melanjutkan sync.
+        </p>
         <p class="status-banner offline" x-show="!isOnline">
             Sedang offline, silakan cari sinyal untuk sync.
             <span x-show="pendingCount > 0" x-text="`(${pendingCount} scan belum ter-sync)`"></span>

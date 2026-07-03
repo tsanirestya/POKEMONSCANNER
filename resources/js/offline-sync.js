@@ -135,13 +135,21 @@ async function submitToServer(item) {
     return res.json();
 }
 
+// Sesi Laravel habis / CSRF basi — harus login ulang, retry tanpa login tidak akan pernah berhasil.
+export function isAuthError(e) {
+    return e instanceof Error && (e.message === 'http-401' || e.message === 'http-419');
+}
+
 /**
  * Kirim antrian satu per satu (FIFO). Berhenti begitu satu item gagal
- * karena jaringan (sisanya dicoba lagi di sync berikutnya).
+ * karena jaringan (sisanya dicoba lagi di sync berikutnya). Kalau gagalnya
+ * karena sesi habis (401/419), tandai supaya UI minta login ulang —
+ * antrian tetap utuh di IndexedDB.
  */
 export async function flushQueue(onItemSynced) {
     const items = await getQueue();
     let syncedCount = 0;
+    let authError = false;
 
     for (const item of items) {
         try {
@@ -150,18 +158,16 @@ export async function flushQueue(onItemSynced) {
             syncedCount++;
             if (onItemSynced) onItemSynced(item, syncedCount);
         } catch (e) {
-            // gagal (masih offline / server error) — hentikan, sisa antrian dicoba lagi nanti
+            authError = isAuthError(e);
             break;
         }
     }
 
-    if (syncedCount === items.length && items.length > 0) {
-        setLastSyncAt(new Date());
-    } else if (items.length === 0) {
+    if (items.length === 0 || syncedCount === items.length) {
         setLastSyncAt(new Date());
     }
 
-    return syncedCount;
+    return { syncedCount, authError };
 }
 
 export function setLastSyncAt(date) {

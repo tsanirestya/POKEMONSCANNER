@@ -7,4 +7,6 @@
     <livewire:admin.manual-input />
 
     <x-export-report />
+
+    <livewire:admin.reset-data />
 </x-layouts.app>
