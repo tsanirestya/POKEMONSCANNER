@@ -61,7 +61,7 @@ new class extends Component
     x-data="pokemonScanner({
         tipe: 'in',
         cooldownMs: 1000,
-        modeTeliti: false,
+        modeTeliti: true,
         missFramesThreshold: 3,
     })"
     x-init="init()"
