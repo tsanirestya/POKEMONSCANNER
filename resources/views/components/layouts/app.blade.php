@@ -20,6 +20,7 @@
                     <a href="{{ route('admin.vendors') }}" class="{{ request()->routeIs('admin.vendors') ? 'active' : '' }}">Vendor</a>
                     <a href="{{ route('admin.products') }}" class="{{ request()->routeIs('admin.products') ? 'active' : '' }}">Produk</a>
                     <a href="{{ route('admin.products.import') }}" class="{{ request()->routeIs('admin.products.import') ? 'active' : '' }}">Import Produk</a>
+                    <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users') ? 'active' : '' }}">User</a>
                 @endif
                 <a href="{{ route('scan') }}" class="{{ request()->routeIs('scan') ? 'active' : '' }}">Scan</a>
                 @if (auth()->user()->isOperator())
@@ -63,6 +64,10 @@
                 <a href="{{ route('admin.products.import') }}" class="{{ request()->routeIs('admin.products.import') ? 'active' : '' }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 19h16"/></svg>
                     Import
+                </a>
+                <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+                    User
                 </a>
             @endif
 

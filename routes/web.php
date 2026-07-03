@@ -25,6 +25,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/vendors', fn () => view('admin.vendors'))->name('admin.vendors');
     Route::get('/admin/products', fn () => view('admin.products'))->name('admin.products');
     Route::get('/admin/products/import', fn () => view('admin.products-import'))->name('admin.products.import');
+    Route::get('/admin/users', fn () => view('admin.users'))->name('admin.users');
 });
 
 Route::middleware(['auth', 'role:admin,operator'])->group(function () {
