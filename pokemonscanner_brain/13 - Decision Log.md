@@ -17,6 +17,9 @@ Keputusan terkunci (final). Reverse chronological — keputusan baru di atas. DE
 
 ---
 
+### DEC-20 — Utilitas admin: reset riwayat in/out (pra-production)
+**2026-07-03** · Kartu danger di dashboard admin menghapus seluruh `stock_movements` dan menolkan `stok_sekarang` semua produk (produk/vendor/user tidak disentuh), dengan konfirmasi ketik RESET + dialog. Tujuan: bersihkan data testing sebelum go-live. Catatan: antrian offline HP yang belum sync akan tercatat lagi setelah reset — pastikan semua HP sync dulu. → [[10 - Dashboard & Reporting]]
+
 ### DEC-19 — Export report Excel dari Laporan & Dashboard
 **2026-07-03** · Menu export report (.xlsx) ditambahkan atas permintaan owner, tersedia untuk admin (dashboard) & operator (/laporan). Isi: Sheet 1 = stok saat ini (barcode, nama, vendor, stok); Sheet 2 = pergerakan stok pada rentang tanggal (default 30 hari terakhir). Barcode dipaksa string di kedua sheet (konsisten DEC-06). **Alasan:** kebutuhan pelaporan keluar aplikasi (share/arsip). → [[10 - Dashboard & Reporting]]
 
