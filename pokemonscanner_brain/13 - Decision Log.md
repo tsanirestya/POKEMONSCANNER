@@ -4,7 +4,7 @@ type: brd
 status: final
 tags: [pokemonscanner, decision]
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-03
 ---
 
 # 13 - Decision Log
@@ -13,9 +13,15 @@ updated: 2026-07-02
 
 Tag: `#pokemonscanner/decision`
 
-Keputusan terkunci (final). Reverse chronological — keputusan baru di atas. Semua tanggal 2026-07-02 (keputusan awal proyek).
+Keputusan terkunci (final). Reverse chronological — keputusan baru di atas. DEC-01..17 bertanggal 2026-07-02 (keputusan awal proyek).
 
 ---
+
+### DEC-19 — Export report Excel dari Laporan & Dashboard
+**2026-07-03** · Menu export report (.xlsx) ditambahkan atas permintaan owner, tersedia untuk admin (dashboard) & operator (/laporan). Isi: Sheet 1 = stok saat ini (barcode, nama, vendor, stok); Sheet 2 = pergerakan stok pada rentang tanggal (default 30 hari terakhir). Barcode dipaksa string di kedua sheet (konsisten DEC-06). **Alasan:** kebutuhan pelaporan keluar aplikasi (share/arsip). → [[10 - Dashboard & Reporting]]
+
+### DEC-18 — Timezone aplikasi: GMT+7 (Asia/Jakarta)
+**2026-07-03** · Timezone aplikasi diubah dari UTC ke `Asia/Jakarta` (configurable via `APP_TIMEZONE`). Berlaku untuk tampilan waktu, metrik "hari ini", dan rentang export. Timestamp lama di DB tetap; hanya interpretasi tampilan yang bergeser +7. **Alasan:** operasional gudang di WIB, metrik harian harus mengikuti hari lokal. → [[10 - Dashboard & Reporting]]
 
 ### DEC-17 — Mode teliti: keluar frame = 3 frame berturut tanpa deteksi
 **2026-07-02** · "Keluar frame" didefinisikan sebagai 3 frame decode berturut-turut tanpa deteksi barcode yang sama. Nilai ini dapat dikonfigurasi, sama seperti cooldown (DEC-13). **Alasan:** cukup singkat agar operator tak menunggu lama, cukup lama untuk bukan sekadar noise/blur sesaat. → [[08 - Spesifikasi Scan & Anti-Double-Input]] (jawaban OQ-07)

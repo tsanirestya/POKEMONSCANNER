@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReportExportController;
 use App\Http\Controllers\ScanSyncController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +32,5 @@ Route::middleware(['auth', 'role:admin,operator'])->group(function () {
     Route::post('/scan/submit', [ScanSyncController::class, 'submit'])->name('scan.submit');
     Route::get('/scan/master-cache', [ScanSyncController::class, 'masterCache'])->name('scan.master-cache');
     Route::get('/laporan', fn () => view('laporan'))->name('laporan');
+    Route::get('/laporan/export', [ReportExportController::class, 'download'])->name('laporan.export');
 });

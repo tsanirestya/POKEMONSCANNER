@@ -3,4 +3,6 @@
     <p class="mb-4 text-black/60">Halo, {{ auth()->user()->name }}. Ringkasan stok &amp; pergerakan (read-only).</p>
 
     <livewire:dashboard.metrics />
+
+    <x-export-report />
 </x-layouts.app>

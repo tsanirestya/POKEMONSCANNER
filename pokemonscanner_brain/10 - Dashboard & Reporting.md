@@ -4,7 +4,7 @@ type: brd
 status: final
 tags: [pokemonscanner, functional, dashboard]
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-03
 ---
 
 # 10 - Dashboard & Reporting
@@ -40,10 +40,19 @@ Admin dapat memasukkan/keluarkan stok manual langsung dari dashboard:
 - Tercatat sebagai movement `metode = manual`. Lihat [[04 - Functional Requirements]] FR-MOVE-01.
 - Butuh **online** (lihat accepted constraint di [[09 - Spesifikasi Offline Sync]]).
 
+## Export Report (DEC-19, 2026-07-03)
+
+Menu export .xlsx tersedia di dashboard (admin) & `/laporan` (operator):
+
+- **Sheet "Stok Saat Ini":** barcode (string, DEC-06), nama produk, vendor, stok.
+- **Sheet "Pergerakan":** waktu (WIB), barcode, produk, tipe, qty, metode, alasan, user — difilter rentang tanggal, default 30 hari terakhir.
+- Endpoint: `GET /laporan/export?dari=&sampai=` (auth, role admin/operator).
+
 ## Catatan
 
 - Ambang "stok menipis" dihapus dari scope (sementara) → [[13 - Decision Log]] DEC-14.
 - Periode grafik: rentang/default dinamis, fleksibel di implementasi → [[13 - Decision Log]] DEC-15.
+- Timezone aplikasi = `Asia/Jakarta` (GMT+7) → [[13 - Decision Log]] DEC-18. Metrik "hari ini" mengikuti hari WIB.
 
 ## Note Terkait
 

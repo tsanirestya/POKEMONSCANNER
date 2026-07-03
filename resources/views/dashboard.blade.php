@@ -5,4 +5,6 @@
     <livewire:dashboard.metrics />
 
     <livewire:admin.manual-input />
+
+    <x-export-report />
 </x-layouts.app>
