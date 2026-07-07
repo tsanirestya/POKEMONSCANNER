@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
         ]);
+
+        // Default Laravel melempar user ter-autentikasi dari route `guest` ke
+        // route bernama `dashboard` — 403 untuk operator/SPG. Arahkan per role.
+        $middleware->redirectUsersTo(fn ($request) => $request->user()->homeRoute());
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

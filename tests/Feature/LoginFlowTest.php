@@ -80,4 +80,27 @@ class LoginFlowTest extends TestCase
         $this->get('/dashboard')->assertRedirect(route('login'));
         $this->get('/scan')->assertRedirect(route('login'));
     }
+
+    /**
+     * Regresi 403 "nyangkut": user login yang membuka `/` (ketik domain,
+     * bookmark, PWA start_url) harus mendarat di halaman sesuai role-nya,
+     * bukan dilempar ke /dashboard (403 untuk non-admin).
+     */
+    public function test_root_mengarahkan_user_login_ke_halaman_sesuai_role(): void
+    {
+        foreach (['admin' => 'dashboard', 'operator' => 'scan', 'spg' => 'booking'] as $role => $routeName) {
+            $this->actingAs(User::factory()->create(['role' => $role]))
+                ->get('/')
+                ->assertRedirect(route($routeName));
+        }
+    }
+
+    public function test_halaman_login_mengarahkan_user_login_ke_halaman_sesuai_role(): void
+    {
+        foreach (['admin' => 'dashboard', 'operator' => 'scan', 'spg' => 'booking'] as $role => $routeName) {
+            $this->actingAs(User::factory()->create(['role' => $role]))
+                ->get('/login')
+                ->assertRedirect(route($routeName));
+        }
+    }
 }

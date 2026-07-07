@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "15 - Roadmap Implementasi.md",
+                "file": "01 - Ringkasan Proyek.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "15 - Roadmap Implementasi"
+              "title": "01 - Ringkasan Proyek"
             }
           }
         ]
@@ -201,6 +201,8 @@
   },
   "active": "84990c60511b91ff",
   "lastOpenFiles": [
+    "16 - Runbook Deployment & Troubleshooting Hosting.md",
+    "15 - Roadmap Implementasi.md",
     "15 - Roadmap Implementasi.md.tmp.27364.57f3de2b5117",
     "15 - Roadmap Implementasi.md.tmp.27364.a5a00967fbf9",
     "15 - Roadmap Implementasi.md.tmp.27364.acd1f29a4780",
@@ -211,10 +213,7 @@
     "17 - Spesifikasi Booking Order.md.tmp.5988.5a3a6629af8f",
     "17 - Spesifikasi Booking Order.md.tmp.5988.7ea7d208ad98",
     "17 - Spesifikasi Booking Order.md.tmp.5988.bda44df4fd1f",
-    "17 - Spesifikasi Booking Order.md.tmp.5988.d17b53dc4edc",
     "14 - Open Questions.md",
-    "16 - Runbook Deployment & Troubleshooting Hosting.md",
-    "15 - Roadmap Implementasi.md",
     "04 - Functional Requirements.md",
     "00 - Index (MOC).md",
     "06 - Data Model & ERD.md",

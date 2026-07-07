@@ -47,6 +47,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Halaman awal sesuai role. Dipakai redirect login, route `/`, dan
+     * middleware `guest` — jangan pernah mengarahkan non-admin ke /dashboard (403).
+     */
+    public function homeRoute(): string
+    {
+        return match (true) {
+            $this->isAdmin() => route('dashboard'),
+            $this->isSpg() => route('booking'),
+            default => route('scan'),
+        };
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>

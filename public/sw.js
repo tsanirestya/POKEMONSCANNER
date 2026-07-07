@@ -1,5 +1,7 @@
-const CACHE_NAME = 'pokemonscanner-shell-v2';
-const APP_SHELL = ['/scan', '/manifest.json', '/icons/icon.svg'];
+// '/scan' sengaja TIDAK ada di APP_SHELL: untuk role SPG URL itu 403,
+// dan addAll() gagal total kalau satu request saja non-2xx (SW tidak ter-install).
+const CACHE_NAME = 'pokemonscanner-shell-v3';
+const APP_SHELL = ['/manifest.json', '/icons/icon.svg'];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(

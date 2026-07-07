@@ -20,7 +20,9 @@ Route::post('/logout', function () {
     return redirect()->route('login');
 })->middleware('auth')->name('logout');
 
-Route::get('/', fn () => redirect()->route('login'));
+Route::get('/', fn () => auth()->check()
+    ? redirect(auth()->user()->homeRoute())
+    : redirect()->route('login'));
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');

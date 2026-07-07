@@ -26,13 +26,7 @@ new class extends Component
 
         session()->regenerate();
 
-        $user = Auth::user();
-
-        $this->redirect(match (true) {
-            $user->isAdmin() => route('dashboard'),
-            $user->isSpg() => route('booking'),
-            default => route('scan'),
-        }, navigate: true);
+        $this->redirect(Auth::user()->homeRoute(), navigate: true);
     }
 };
 ?>
