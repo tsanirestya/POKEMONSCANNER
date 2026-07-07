@@ -20,7 +20,14 @@
                     <a href="{{ route('admin.vendors') }}" class="{{ request()->routeIs('admin.vendors') ? 'active' : '' }}">Vendor</a>
                     <a href="{{ route('admin.products') }}" class="{{ request()->routeIs('admin.products') ? 'active' : '' }}">Produk</a>
                 @endif
-                <a href="{{ route('scan') }}" class="{{ request()->routeIs('scan') ? 'active' : '' }}">Scan</a>
+                @unless (auth()->user()->isSpg())
+                    <a href="{{ route('scan') }}" class="{{ request()->routeIs('scan') ? 'active' : '' }}">Scan</a>
+                @endunless
+                <a href="{{ route('booking') }}" class="{{ request()->routeIs('booking') ? 'active' : '' }}">Booking</a>
+                <a href="{{ route('booking.riwayat') }}" class="{{ request()->routeIs('booking.riwayat') ? 'active' : '' }}">Riwayat</a>
+                @unless (auth()->user()->isSpg())
+                    <a href="{{ route('booking.rekonsiliasi') }}" class="{{ request()->routeIs('booking.rekonsiliasi') ? 'active' : '' }}">Rekonsiliasi</a>
+                @endunless
                 @if (auth()->user()->isAdmin())
                     <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                         <button type="button" class="navbar-more {{ request()->routeIs('admin.products.import', 'admin.users') ? 'active' : '' }}" @click="open = !open">
@@ -61,17 +68,28 @@
                 </a>
             @endif
 
-            <a href="{{ route('scan') }}" class="nav-scan {{ request()->routeIs('scan') ? 'active' : '' }}">
-                <span class="nav-scan-icon"><span class="pokeball-dot"></span></span>
-                Scan
-            </a>
+            @if (auth()->user()->isSpg())
+                <a href="{{ route('booking') }}" class="nav-scan {{ request()->routeIs('booking') ? 'active' : '' }}">
+                    <span class="nav-scan-icon"><span class="pokeball-dot"></span></span>
+                    Booking
+                </a>
+                <a href="{{ route('booking.riwayat') }}" class="{{ request()->routeIs('booking.riwayat') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                    Riwayat
+                </a>
+            @else
+                <a href="{{ route('scan') }}" class="nav-scan {{ request()->routeIs('scan') ? 'active' : '' }}">
+                    <span class="nav-scan-icon"><span class="pokeball-dot"></span></span>
+                    Scan
+                </a>
+            @endif
 
             @if (auth()->user()->isAdmin())
                 <a href="{{ route('admin.vendors') }}" class="{{ request()->routeIs('admin.vendors') ? 'active' : '' }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4h15L21 9"/><path d="M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9Z"/><path d="M9 20v-6h6v6"/></svg>
                     Vendor
                 </a>
-                <button type="button" class="bottom-nav-more-btn {{ request()->routeIs('admin.products.import', 'admin.users') ? 'active' : '' }}" @click="more = !more">
+                <button type="button" class="bottom-nav-more-btn {{ request()->routeIs('admin.products.import', 'admin.users', 'booking', 'booking.riwayat', 'booking.rekonsiliasi') ? 'active' : '' }}" @click="more = !more">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
                     Lainnya
                 </button>
@@ -85,10 +103,34 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
                         User
                     </a>
+                    <a href="{{ route('booking') }}" class="{{ request()->routeIs('booking') ? 'active' : '' }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-2-1.5L14 21l-2-1.5L10 21l-2-1.5L6 21V3Z"/><path d="M9 8h6M9 12h6"/></svg>
+                        Booking
+                    </a>
+                    <a href="{{ route('booking.riwayat') }}" class="{{ request()->routeIs('booking.riwayat') ? 'active' : '' }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                        Riwayat
+                    </a>
+                    <a href="{{ route('booking.rekonsiliasi') }}" class="{{ request()->routeIs('booking.rekonsiliasi') ? 'active' : '' }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 5 4-10 2 5h4"/></svg>
+                        Rekonsiliasi
+                    </a>
                 </div>
             @endif
 
             @if (auth()->user()->isOperator())
+                <a href="{{ route('booking') }}" class="{{ request()->routeIs('booking') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-2-1.5L14 21l-2-1.5L10 21l-2-1.5L6 21V3Z"/><path d="M9 8h6M9 12h6"/></svg>
+                    Booking
+                </a>
+                <a href="{{ route('booking.riwayat') }}" class="{{ request()->routeIs('booking.riwayat') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                    Riwayat
+                </a>
+                <a href="{{ route('booking.rekonsiliasi') }}" class="{{ request()->routeIs('booking.rekonsiliasi') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 5 4-10 2 5h4"/></svg>
+                    Rekonsiliasi
+                </a>
                 <a href="{{ route('laporan') }}" class="{{ request()->routeIs('laporan') ? 'active' : '' }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a1 1 0 0 1 1-1h9l5 5v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
                     Laporan

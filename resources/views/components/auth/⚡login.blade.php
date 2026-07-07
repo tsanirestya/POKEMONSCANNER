@@ -28,7 +28,11 @@ new class extends Component
 
         $user = Auth::user();
 
-        $this->redirect($user->isAdmin() ? route('dashboard') : route('scan'), navigate: true);
+        $this->redirect(match (true) {
+            $user->isAdmin() => route('dashboard'),
+            $user->isSpg() => route('booking'),
+            default => route('scan'),
+        }, navigate: true);
     }
 };
 ?>

@@ -4,7 +4,7 @@ type: brd
 status: final
 tags: [pokemonscanner, decision]
 created: 2026-07-02
-updated: 2026-07-03
+updated: 2026-07-07
 ---
 
 # 13 - Decision Log
@@ -16,6 +16,21 @@ Tag: `#pokemonscanner/decision`
 Keputusan terkunci (final). Reverse chronological — keputusan baru di atas. DEC-01..17 bertanggal 2026-07-02 (keputusan awal proyek).
 
 ---
+
+### DEC-25 — Nomor urut harian di booking pass (001–999, tampil besar)
+**2026-07-07** · Selain `booking_code`, tiap booking punya **nomor urut harian** (`nomor_urut`, 1–999, reset tiap hari WIB) yang dicetak **besar** di struk sebagai identitas cepat ala nomor antrian. `booking_code` tetap satu-satunya ID unik; nomor urut hanya alat rujuk manusia, ditampilkan 3 digit (`001`). Jika satu hari melewati 999, berputar kembali ke 001 (duplikat tampilan diterima — referensi pasti tetap `booking_code`). **Alasan:** kasir/keeper/SPG lebih cepat merujuk "booking 042" daripada kode alfanumerik panjang. → [[17 - Spesifikasi Booking Order]]
+
+### DEC-24 — Struk booking: thermal 58mm via print browser + RawBT, barcode Code128
+**2026-07-07** · Struk Booking Order dicetak ke printer thermal Bluetooth 58mm: halaman print CSS 58mm + `window.print()`, target printer via app RawBT (virtual printer Android). Barcode `booking_code` = Code128, digenerate client-side (JsBarcode via npm, ikut bundle Vite). Struk tanpa harga (sistem tak menyimpan harga). **Alasan:** tanpa backend printing, tanpa driver khusus; JsBarcode lokal = tetap jalan tanpa CDN. → [[17 - Spesifikasi Booking Order]]
+
+### DEC-23 — Store keeper = role operator existing
+**2026-07-07** · Rekonsiliasi booking diakses admin + operator; tidak ada role keempat. SPG tidak bisa akses rekonsiliasi. **Alasan:** store keeper di lapangan = operator gudang; hindari kompleksitas role tambahan. → [[17 - Spesifikasi Booking Order]]
+
+### DEC-22 — Role baru `spg`: hanya booking, boleh lihat stok
+**2026-07-07** · Role user jadi `admin|operator|spg`. SPG hanya akses halaman Booking + riwayat miliknya (buat, cetak, void); tidak akses scan gudang/master/dashboard. SPG boleh melihat `stok_sekarang` saat memilih produk (info ketersediaan), tapi tak bisa mengubah stok. Login SPG redirect ke halaman Booking. **Alasan:** SPG fokus jualan; input harus hitungan detik; visibilitas stok membantu closing. → [[17 - Spesifikasi Booking Order]]
+
+### DEC-21 — Modul Booking Order: catatan keluar rak, tanpa redeem, tanpa sentuh stok
+**2026-07-07** · Booking Order menggantikan nota manual SPG: pilih/scan produk + qty → cetak struk ber-barcode → customer bawa ke kasir → kasir proses POS normal **tanpa redeem**. BO disimpan di tabel `bookings` + `booking_items`, **terpisah total dari `stock_movements` dan tidak pernah mengubah `stok_sekarang`**. Pencocokan akhir hari oleh store keeper (rekonsiliasi BO vs ledger vs POS vs stok fisik). Accepted constraints: (a) BO bukan bukti transaksi selesai — selisih tetap dianalisis via rekonsiliasi; (b) BO online-only (konsisten DEC-08); (c) void = ubah status, bukan hapus. **Alasan:** kesederhanaan — kasir nol perubahan; ledger stok tetap murni (konsisten DEC-04/07). → [[17 - Spesifikasi Booking Order]]
 
 ### DEC-20 — Utilitas admin: reset riwayat in/out (pra-production)
 **2026-07-03** · Kartu danger di dashboard admin menghapus seluruh `stock_movements` dan menolkan `stok_sekarang` semua produk (produk/vendor/user tidak disentuh), dengan konfirmasi ketik RESET + dialog. Tujuan: bersihkan data testing sebelum go-live. Catatan: antrian offline HP yang belum sync akan tercatat lagi setelah reset — pastikan semua HP sync dulu. → [[10 - Dashboard & Reporting]]

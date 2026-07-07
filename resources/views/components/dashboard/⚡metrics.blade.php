@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Booking;
+use App\Models\BookingItem;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Support\Carbon;
@@ -65,6 +67,13 @@ new class extends Component
             'totalStok' => (int) Product::sum('stok_sekarang'),
             'inHariIni' => (int) StockMovement::whereDate('created_at', today())->where('tipe', 'in')->sum('qty'),
             'outHariIni' => (int) StockMovement::whereDate('created_at', today())->where('tipe', 'out')->sum('qty'),
+            // FR-BOOK-05: booking hari ini (non-void — void = customer batal, barang kembali ke rak).
+            'bookingHariIni' => Booking::whereDate('created_at', today())->where('status', '!=', Booking::STATUS_VOID)->count(),
+            'itemTerbookingHariIni' => (int) BookingItem::query()
+                ->join('bookings', 'bookings.id', '=', 'booking_items.booking_id')
+                ->whereDate('bookings.created_at', today())
+                ->where('bookings.status', '!=', Booking::STATUS_VOID)
+                ->sum('booking_items.qty'),
             'feed' => StockMovement::with('product', 'user')->latest('id')->limit(15)->get(),
             'topOut' => $topOut,
             'chart' => $chart,
@@ -91,6 +100,14 @@ new class extends Component
         <div class="stat-card">
             <div class="stat-label">Keluar Hari Ini</div>
             <strong class="stat-value text-poke-red">{{ $outHariIni }}</strong>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Booking Hari Ini</div>
+            <strong class="stat-value">{{ $bookingHariIni }}</strong>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Item Ter-booking Hari Ini</div>
+            <strong class="stat-value">{{ $itemTerbookingHariIni }}</strong>
         </div>
     </div>
 

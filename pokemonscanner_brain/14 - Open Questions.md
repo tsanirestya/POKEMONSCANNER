@@ -4,7 +4,7 @@ type: brd
 status: final
 tags: [pokemonscanner, question]
 created: 2026-07-02
-updated: 2026-07-03
+updated: 2026-07-07
 ---
 
 # 14 - Open Questions
@@ -14,6 +14,22 @@ updated: 2026-07-03
 Tag: `#pokemonscanner/question`
 
 Hal yang **belum diputuskan**. Jangan mengarang keputusan — catat di sini sampai diklarifikasi. Reverse chronological.
+
+---
+
+## OQ-10 — Konversi Booking Order → movement gudang?
+
+**Ditemukan:** 2026-07-07, saat spesifikasi modul Booking Order ([[17 - Spesifikasi Booking Order]]).
+
+Booking Order sengaja tidak pernah menyentuh stok (DEC-21). Kalau kelak diinginkan alur "booking dikonfirmasi → otomatis jadi Scan/Input Keluar di `stock_movements`", itu keputusan baru: menyentuh integritas ledger (DEC-04) dan mengubah sifat BO dari catatan jadi transaksi. **Belum dibutuhkan** — jangan implementasi tanpa keputusan eksplisit.
+
+---
+
+## OQ-09 — Booking Order offline?
+
+**Ditemukan:** 2026-07-07, saat spesifikasi modul Booking Order ([[17 - Spesifikasi Booking Order]]).
+
+BO diputuskan online-only (DEC-21, konsisten accepted constraint input manual DEC-08). Kalau sinyal di area rak ternyata jelek, opsi: antrian BO offline ala Fase 6 (`booking_code` digenerate client-side, sync belakangan). Konsekuensi: kode di struk belum tentu sudah ada di server saat customer sampai kasir. **Tunggu bukti kebutuhan lapangan dulu.**
 
 ---
 

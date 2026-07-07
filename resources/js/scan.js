@@ -1,5 +1,10 @@
-import { BrowserMultiFormatReader } from '@zxing/browser';
-import { BarcodeFormat, DecodeHintType } from '@zxing/library';
+import {
+    createScanGate,
+    playDuplicateSound,
+    playErrorSound,
+    playSuccessSound,
+    startCameraScanner,
+} from './scanner-core';
 import {
     applyOptimisticLocalStock,
     flushQueue,
@@ -11,67 +16,6 @@ import {
     queueScan,
     submitToServer,
 } from './offline-sync';
-
-// Satu AudioContext dipakai bersama: browser membatasi jumlah context aktif,
-// dan context yang dibuat tanpa user gesture tertahan 'suspended' (autoplay policy).
-let sharedAudioCtx = null;
-
-function audioCtx() {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-
-    if (!sharedAudioCtx) {
-        sharedAudioCtx = new AudioCtx();
-    }
-
-    if (sharedAudioCtx.state === 'suspended') {
-        sharedAudioCtx.resume();
-    }
-
-    return sharedAudioCtx;
-}
-
-// Unlock audio pada gesture pertama di halaman (tap di mana pun).
-['touchstart', 'click'].forEach((evt) => {
-    document.addEventListener(evt, () => audioCtx(), { once: true, passive: true });
-});
-
-function beep({ frequency, duration, type = 'sine' }) {
-    const ctx = audioCtx();
-
-    if (ctx.state !== 'running') {
-        return; // belum di-unlock gesture — lewati, jangan antri bunyi basi
-    }
-
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    oscillator.type = type;
-    oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + duration);
-    oscillator.onended = () => {
-        oscillator.disconnect();
-        gain.disconnect();
-    };
-}
-
-function playSuccessSound() {
-    beep({ frequency: 880, duration: 0.12 });
-}
-
-function playErrorSound() {
-    beep({ frequency: 160, duration: 0.35, type: 'sawtooth' });
-}
-
-function playDuplicateSound() {
-    beep({ frequency: 440, duration: 0.15, type: 'triangle' });
-}
 
 const AUTO_SYNC_INTERVAL_MS = 20000;
 
@@ -95,13 +39,8 @@ document.addEventListener('alpine:init', () => {
         syncing: false,
         authExpired: false,
 
-        stream: null,
-        track: null,
-        detector: null,
-        zxingReader: null,
-        zxingControls: null,
-        countedState: new Map(),
-        rafId: null,
+        camera: null,
+        gate: null,
         autoSyncTimer: null,
 
         async init() {
@@ -121,15 +60,23 @@ document.addEventListener('alpine:init', () => {
                 if (this.isOnline) this.trySync();
             }, AUTO_SYNC_INTERVAL_MS);
 
+            this.gate = createScanGate({
+                getConfig: () => ({
+                    cooldownMs: this.cooldownMs,
+                    modeTeliti: this.modeTeliti,
+                    missFramesThreshold: this.missFramesThreshold,
+                }),
+                onCount: (barcode) => this.countScan(barcode),
+                onDuplicate: ({ beep }) => {
+                    if (beep) playDuplicateSound();
+                    this.ready = false;
+                },
+            });
+
             try {
-                // Resolusi tinggi penting: default browser (±640x480) tidak cukup
-                // pixel untuk decode barcode kecil dari jarak normal.
-                this.stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { ideal: 'environment' },
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                    },
+                this.camera = await startCameraScanner({
+                    video: this.$refs.video,
+                    onFrame: (barcode) => this.gate.handleFrame(barcode),
                 });
             } catch (e) {
                 this.lastMessage = 'Kamera tidak bisa diakses: ' + e.message;
@@ -137,47 +84,9 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
 
-            this.$refs.video.srcObject = this.stream;
-            await this.$refs.video.play();
-
-            this.track = this.stream.getVideoTracks()[0];
-            const capabilities = this.track.getCapabilities ? this.track.getCapabilities() : {};
-            this.torchSupported = !!capabilities.torch;
-
-            if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
-                try {
-                    await this.track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-                } catch (e) {
-                    // kamera tidak mendukung set fokus via constraint — pakai default
-                }
-            }
-
-            if ('BarcodeDetector' in window) {
-                this.detector = new window.BarcodeDetector({
-                    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'],
-                });
-                this.decoderReady = true;
-                this.loopBarcodeDetector();
-            } else {
-                this.usingFallback = true;
-                const hints = new Map();
-                hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-                    BarcodeFormat.EAN_13,
-                    BarcodeFormat.EAN_8,
-                    BarcodeFormat.UPC_A,
-                    BarcodeFormat.UPC_E,
-                    BarcodeFormat.CODE_128,
-                    BarcodeFormat.CODE_39,
-                    BarcodeFormat.QR_CODE,
-                ]);
-                hints.set(DecodeHintType.TRY_HARDER, true);
-                this.zxingReader = new BrowserMultiFormatReader(hints);
-                this.decoderReady = true;
-                this.zxingControls = await this.zxingReader.decodeFromVideoElement(
-                    this.$refs.video,
-                    (result) => this.handleFrame(result ? result.getText() : null),
-                );
-            }
+            this.torchSupported = this.camera.torchSupported;
+            this.usingFallback = this.camera.usingFallback;
+            this.decoderReady = true;
         },
 
         async handleOnline() {
@@ -219,71 +128,6 @@ document.addEventListener('alpine:init', () => {
 
             await this.refreshCache();
             await this.trySync();
-        },
-
-        async loopBarcodeDetector() {
-            if (!this.detector) return;
-
-            try {
-                const results = await this.detector.detect(this.$refs.video);
-                this.handleFrame(results.length ? results[0].rawValue : null);
-            } catch (e) {
-                // frame decode gagal sesekali, lanjut ke frame berikutnya
-            }
-
-            this.rafId = requestAnimationFrame(() => this.loopBarcodeDetector());
-        },
-
-        handleFrame(visibleBarcode) {
-            for (const [code, st] of this.countedState) {
-                if (code !== visibleBarcode) {
-                    st.missStreak++;
-
-                    if (this.modeTeliti && st.missStreak >= this.missFramesThreshold) {
-                        this.countedState.delete(code);
-                    }
-                }
-            }
-
-            if (!visibleBarcode) {
-                return;
-            }
-
-            const now = Date.now();
-            const st = this.countedState.get(visibleBarcode);
-
-            if (!st) {
-                this.countScan(visibleBarcode);
-                this.countedState.set(visibleBarcode, { lastTs: now, missStreak: 0 });
-
-                return;
-            }
-
-            st.missStreak = 0;
-
-            if (this.modeTeliti) {
-                this.duplicateFeedback(st, now);
-
-                return;
-            }
-
-            if (now - st.lastTs >= this.cooldownMs) {
-                this.countScan(visibleBarcode);
-                st.lastTs = now;
-            } else {
-                this.duplicateFeedback(st, now);
-            }
-        },
-
-        // Barcode yang sama terbaca terus tiap frame — bunyikan nada duplikat
-        // maksimal 1x/detik, bukan puluhan kali per detik.
-        duplicateFeedback(st, now) {
-            if (!st.lastDupBeepTs || now - st.lastDupBeepTs >= 1000) {
-                playDuplicateSound();
-                st.lastDupBeepTs = now;
-            }
-
-            this.ready = false;
         },
 
         async countScan(barcode) {
@@ -371,21 +215,19 @@ document.addEventListener('alpine:init', () => {
         },
 
         async toggleTorch() {
-            if (!this.track) return;
+            if (!this.camera || !this.torchSupported) return;
 
             this.torchOn = !this.torchOn;
 
             try {
-                await this.track.applyConstraints({ advanced: [{ torch: this.torchOn }] });
+                await this.camera.setTorch(this.torchOn);
             } catch (e) {
                 this.torchOn = !this.torchOn;
             }
         },
 
         destroy() {
-            if (this.rafId) cancelAnimationFrame(this.rafId);
-            if (this.zxingControls) this.zxingControls.stop();
-            if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
+            if (this.camera) this.camera.stop();
             if (this.autoSyncTimer) window.clearInterval(this.autoSyncTimer);
         },
     }));

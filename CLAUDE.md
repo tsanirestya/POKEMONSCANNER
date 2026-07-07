@@ -22,6 +22,15 @@
 
 **Semua 10 fase roadmap implementasi (Fase 0–9) selesai.**
 
+**Modul Booking Order (Fase BO, mulai 2026-07-07)** — spesifikasi di [`17 - Spesifikasi Booking Order.md`](pokemonscanner_brain/17%20-%20Spesifikasi%20Booking%20Order.md), keputusan DEC-21..25:
+- ✅ Fase BO-0 — Skema & Role SPG (migration `bookings`+`booking_items`, role `spg`, redirect & nav, generator `booking_code`) — SELESAI 2026-07-07
+- ✅ Fase BO-1 — Halaman Booking SPG (komponen `⚡booking` guard 3 role; scan lookup-only reuse logic kamera+bunyi+gate diekstrak ke `resources/js/scanner-core.js`, `scan.js` di-refactor memakainya; cari nama+stok; keranjang qty; simpan transaksi → `/booking/{id}/struk` placeholder, print thermal menyusul BO-2) — SELESAI 2026-07-07
+- ✅ Fase BO-2 — Struk Thermal (JsBarcode via npm + entry `struk.js`; view struk `@media print` 58mm: nomor urut besar, barcode Code128+teks, tanggal WIB, SPG, item+qty, total, tanpa harga; tombol Cetak `window.print()` untuk RawBT) — kode SELESAI 2026-07-07; **uji cetak printer thermal fisik pending (manual user)**
+- ✅ Fase BO-3 — Riwayat & Void SPG (komponen `⚡booking-riwayat` guard 3 role; daftar booking default hari ini + filter tanggal, SPG hanya miliknya / admin+operator semua booking; cetak ulang struk dari riwayat; void hanya status `printed` via `wire:confirm` — ubah status, bukan hapus; route `/booking/riwayat` + nav Riwayat semua role) — SELESAI 2026-07-07
+- ✅ Fase BO-4 — Rekonsiliasi Store Keeper (komponen `⚡booking-rekonsiliasi` guard admin+operator, SPG 403; filter tanggal; agregat per produk qty ter-booking non-void vs keluar ledger + selisih; tandai booking `checked_ok`/`checked_selisih` + `catatan_keeper`, void tak bisa ditandai; export Excel 2 sheet `BookingRekonsiliasiExport` route `/booking/rekonsiliasi/export`; metrik dashboard booking & item ter-booking hari ini di `dashboard.metrics`) — SELESAI 2026-07-08
+
+**Semua fase Booking Order (BO-0..BO-4) selesai.** Sisa item manual: uji cetak struk di printer thermal fisik (BO-2, oleh user).
+
 > Saat fase selesai: centang checklist di [`15 - Roadmap Implementasi.md`](pokemonscanner_brain/15%20-%20Roadmap%20Implementasi.md), lalu update tanda ✅/⬜ di daftar ini.
 
 ## Keputusan Arsitektur Terkunci (final)
@@ -36,11 +45,13 @@
 8. **Offline sync:** cache master (IndexedDB) + antrian scan (`scan_uuid`) + auto-sync. **Tanpa batas retensi antrian**; indikator status = saat offline tampilkan notifikasi "sedang offline, cari sinyal untuk sync" + jumlah task belum ter-sync, saat online tampilkan waktu sync terakhir (DEC-16). Accepted constraints: (a) stok offline = perkiraan, akurat setelah sync; (b) produk baru tak dikenal HP offline sampai sync ulang; (c) login pertama & input manual butuh online.
 9. **Dashboard:** total produk/stok, in/out hari ini, feed pergerakan, produk paling sering keluar, grafik in/out (rentang/default **dinamis**, DEC-15); input manual berbasis alasan. **Peringatan stok menipis dihapus dari scope** (sementara, DEC-14).
 10. **Tema Pokéball orisinal** (merah/putih/hitam, kartu, animasi kecil). **Jangan pakai aset/sprite/SFX asli Pokémon (IP berlisensi)** — hanya orisinal/terinspirasi.
+11. **Booking Order (DEC-21..25):** catatan barang keluar rak oleh SPG, **BUKAN transaksi & TIDAK PERNAH menyentuh `stock_movements`/`stok_sekarang`** (tabel `bookings`+`booking_items` terpisah). Kasir tanpa redeem — POS jalan normal. Role ketiga `spg` (hanya booking, boleh lihat stok); store keeper = role operator existing. Struk thermal 58mm via print browser + RawBT, barcode Code128 (JsBarcode via npm), tanpa harga; **nomor urut harian 001–999 (reset per hari WIB) dicetak besar ala nomor antrian** — ID pasti tetap `booking_code` (DEC-25). BO online-only; void = ubah status, bukan hapus.
 
 ## Aturan Penting / JANGAN LAKUKAN
 
 - **Barcode SELALU string (VARCHAR)**, tidak pernah integer (leading zero, campuran 12/13 digit).
 - **Import Excel TIDAK PERNAH mengubah/mereset stok** — stok hanya dari `stock_movements`.
+- **Booking Order TIDAK PERNAH mengubah stok** — tidak menulis `stock_movements`, tidak menyentuh `stok_sekarang` (DEC-21).
 - **JANGAN** pakai aset/sprite/SFX asli Pokémon — hanya aset orisinal bertema.
 - Semua keputusan di atas **final**. Jika menemukan gap, **jangan mengarang keputusan baru** — catat di `pokemonscanner_brain/14 - Open Questions.md` dengan tag `#pokemonscanner/question`.
 
@@ -72,7 +83,9 @@ pokemonscanner_brain/
 - `vendors`: id, nama, timestamps.
 - `products`: id, barcode (**VARCHAR**, UNIQUE, index), nama_produk, vendor_id (FK), stok_sekarang (cache, default 0), timestamps.
 - `stock_movements` (append-only): id, product_id (FK), tipe (`in`/`out`), qty (default 1), metode (`scan`/`manual`), alasan (nullable), scan_uuid (UNIQUE, nullable), user_id (FK), created_at.
-- `users`: default Laravel + kolom role (`admin`/`operator`).
+- `users`: default Laravel + kolom role (`admin`/`operator`/`spg`).
+- `bookings` (modul BO, terpisah dari stok): id, booking_code (**VARCHAR**, UNIQUE, format `BK-YYMMDD-XXXX`), nomor_urut (smallint unsigned, 1–999 reset harian WIB, DEC-25), user_id (FK), status (`printed`/`void`/`checked_ok`/`checked_selisih`), catatan_keeper (nullable), timestamps.
+- `booking_items`: id, booking_id (FK cascade), product_id (FK), qty (min 1).
 
 ## Guidance Pengisian & Pemeliharaan Obsidian
 

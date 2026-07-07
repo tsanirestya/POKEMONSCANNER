@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Booking;
 use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Validation\Rule;
@@ -33,7 +34,7 @@ new class extends Component
                 Rule::unique('users', 'email')->ignore($this->editingId),
             ],
             'password' => [$this->editingId ? 'nullable' : 'required', 'string', 'min:8'],
-            'role' => ['required', 'in:admin,operator'],
+            'role' => ['required', 'in:admin,operator,spg'],
         ]);
 
         if ($this->editingId) {
@@ -91,6 +92,12 @@ new class extends Component
             return;
         }
 
+        if (Booking::where('user_id', $user->id)->exists()) {
+            $this->addError('delete', 'User tidak bisa dihapus, sudah punya riwayat booking.');
+
+            return;
+        }
+
         $user->delete();
     }
 
@@ -138,6 +145,7 @@ new class extends Component
                     <select id="role" wire:model="role">
                         <option value="operator">Operator</option>
                         <option value="admin">Admin</option>
+                        <option value="spg">SPG</option>
                     </select>
                     @error('role') <span class="error">{{ $message }}</span> @enderror
                 </div>
@@ -170,7 +178,7 @@ new class extends Component
                     <tr wire:key="user-{{ $user->id }}">
                         <td data-label="Nama">{{ $user->name }} @if ($user->id === auth()->id())<span class="text-black/40 text-xs">(kamu)</span>@endif</td>
                         <td data-label="Email">{{ $user->email }}</td>
-                        <td data-label="Role">{{ $user->role === 'admin' ? 'Admin' : 'Operator' }}</td>
+                        <td data-label="Role">{{ ['admin' => 'Admin', 'operator' => 'Operator', 'spg' => 'SPG'][$user->role] ?? $user->role }}</td>
                         <td class="cards-actions flex gap-2">
                             <button type="button" class="btn-secondary btn-sm" wire:click="edit({{ $user->id }})">Ubah</button>
                             @if ($user->id !== auth()->id())
