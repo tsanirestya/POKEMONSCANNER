@@ -6,6 +6,8 @@
 
     <livewire:admin.manual-input />
 
+    <livewire:admin.pengaturan-scan />
+
     <x-export-report />
 
     <livewire:admin.reset-data />

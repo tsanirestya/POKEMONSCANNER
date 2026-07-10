@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Setting;
 use App\Services\ScanService;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Component;
@@ -8,9 +9,16 @@ new class extends Component
 {
     public int $sessionCount = 0;
 
+    public int $cooldownMsDefault = 2000;
+
     public function boot(): void
     {
         abort_unless(auth()->check(), 403);
+    }
+
+    public function mount(): void
+    {
+        $this->cooldownMsDefault = (int) Setting::get('scan_cooldown_ms', '2000');
     }
 
     public function scan(string $barcode, string $tipe, string $scanUuid): void
@@ -60,7 +68,7 @@ new class extends Component
     class="page max-w-lg!"
     x-data="pokemonScanner({
         tipe: 'in',
-        cooldownMs: 1000,
+        cooldownMs: {{ $cooldownMsDefault }},
         modeTeliti: true,
         missFramesThreshold: 3,
     })"
